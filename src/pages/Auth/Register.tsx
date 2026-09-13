@@ -5,6 +5,8 @@ import { NavLink, useNavigate } from "react-router";
 import { useForm } from "react-hook-form"
 import { supabase } from "@/lib/supbase";
 import { useState } from "react";
+import { StepBack } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type RegisterFormValues = {
   name: string
@@ -12,9 +14,8 @@ type RegisterFormValues = {
   password: string
 }
 
-
 export default function Register() {
-
+  const { t } = useTranslation();
   const navigate = useNavigate()
   
   const [authError, setAuthError] = useState({
@@ -25,6 +26,7 @@ export default function Register() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: {errors}
   } = useForm<RegisterFormValues>({
     defaultValues:{
@@ -33,7 +35,9 @@ export default function Register() {
         password: ''
     }
   })
+
   const onSubmit = async(data:RegisterFormValues) => {
+    setAuthError({error: false, msg: ""})
     const {data:authData, error} = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -50,6 +54,7 @@ export default function Register() {
     else {
       if(authData.session) {
         navigate('/')
+        reset()
       }
     }
   }
@@ -58,12 +63,12 @@ export default function Register() {
     <>
       <div className="flex items-center justify-center px-5 py-10 lg:py-30">
         <Card className="max-w-lg w-full">
-          {authError.error ? <h1 className="text-xl text-center font-semibold text-red-600">Error! {authError.msg}</h1> : ""}
+          {authError.error ? <h1 className="text-xl text-center font-semibold text-red-600">{t("auth.errorPrefix")} {authError.msg}</h1> : ""}
           <CardHeader>
-            <CardTitle>Create a new account</CardTitle>
-            <CardDescription className="max-w-md">If you don't have an account, create a new one to use our service. </CardDescription>
+            <CardTitle>{t("auth.registerTitle")}</CardTitle>
+            <CardDescription>{t("auth.registerDesc")}</CardDescription>
             <CardAction>
-              <NavLink to="/login"><Button className="text-lg" variant="link">Login</Button></NavLink>
+              <NavLink to="/"><Button className="text-lg" variant="link"><StepBack /> {t("auth.return")}</Button></NavLink>
             </CardAction>
           </CardHeader>
           <CardContent>
@@ -72,46 +77,50 @@ export default function Register() {
              onSubmit={handleSubmit(onSubmit)}
              className="flex flex-col gap-5">
               <div className="flex flex-col gap-3">
-                <label className="text-xl font-semibold">Name</label>
+                <label className="text-xl font-semibold">{t("auth.nameLabel")}</label>
                 <Input {...register('name', 
                     {
-                      required: 'Введите имя',
-                      minLength: {value: 4, message: 'Минимум 4 символа'}  
-                    })} placeholder="Enter Name..."/>
+                      required: t("auth.validation.nameRequired"),
+                      minLength: {value: 4, message: t("auth.validation.nameMin")}  
+                    })} placeholder={t("auth.namePlaceholder")}/>
                 {errors.name && (
                     <span className="text-red-500 text-sm font-medium">{errors.name.message}</span>
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <label className="text-xl font-semibold">Email</label>
+                <label className="text-xl font-semibold">{t("auth.emailLabel")}</label>
                 <Input {...register('email', 
                     {
-                      required: 'Email обьязателен',
+                      required: t("auth.validation.emailRequired"),
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Некорректный email",
+                        message: t("auth.validation.emailInvalid"),
                       }
-                    })} placeholder="Email..."/>
+                    })} placeholder={t("auth.emailPlaceholder")}/>
                     {errors.email && (
                         <span className="text-red-500 text-sm font-medium">{errors.email?.message}</span>
                     )}
               </div>
               <div className="flex flex-col gap-3">
-                <label className="text-xl font-semibold">Password</label>
+                <label className="text-xl font-semibold">{t("auth.passwordLabel")}</label>
                 <Input {...register("password", {
-                      required: "Пароль обязателен",
-                      minLength: { value: 6, message: "Минимум 6 символов" },
-                  })} type="password" placeholder="Password..."/>
+                      required: t("auth.validation.passwordRequired"),
+                      minLength: { value: 6, message: t("auth.validation.passwordMin") },
+                  })} type="password" placeholder={t("auth.passwordPlaceholder")}/>
                 {errors.password && (
                   <span className="text-red-500 text-sm font-medium">{errors.password?.message}</span>
                 )}
               </div>
             </form>
           </CardContent>
+          <div className="flex justify-center items-center">
+            <p>{t("auth.alreadyHaveAccount")}</p>
+            <NavLink to="/login"><Button className="text-[17px]" variant="link">{t("auth.login")}</Button></NavLink>
+          </div>
           <CardFooter className="flex-col gap-4">
-            <Button form="submit-form" type="submit" className="bg-green-600 hover:bg-green-700 w-full">Sign Up</Button>
+            <Button form="submit-form" type="submit" className="bg-green-600 hover:bg-green-700 w-full">{t("auth.signUp")}</Button>
             <NavLink className='w-full' to="/">
-              <Button className="w-full" variant="outline">Cancel</Button>
+              <Button className="w-full" variant="outline">{t("auth.cancel")}</Button>
             </NavLink>
           </CardFooter>
         </Card>

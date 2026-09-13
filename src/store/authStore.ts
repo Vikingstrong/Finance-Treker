@@ -7,6 +7,7 @@ interface AuthState{
     isLoading: boolean
     setUser: (user:User|null) => void
     init: () => void
+    logout: () => void
 }
 
 
@@ -20,6 +21,11 @@ export const useAuth = create<AuthState>((set) => ({
         }),
         supabase.auth.onAuthStateChange((_event, session) => {
             set({user: session?.user})
+        })
+    },
+    logout: () => {
+        supabase.auth.signOut().then(() => {
+            set({user: null})
         })
     }
 }))

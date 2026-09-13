@@ -5,13 +5,16 @@ import { NavLink, useNavigate } from "react-router";
 import { useForm } from "react-hook-form"
 import { supabase } from "@/lib/supbase";
 import { useState } from "react";
+import { StepBack } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type RegisterFormValues = {
   email: string
   password: string
 }
-export default function Login() {
 
+export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate()
   const [authError, setAuthError] = useState({
     error: false,
@@ -21,6 +24,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: {errors}
   } = useForm<RegisterFormValues>({
     defaultValues:{
@@ -28,7 +32,9 @@ export default function Login() {
         password: ''
     }
   })
+
   const onSubmit = async(data:RegisterFormValues) => {
+    setAuthError({error:false, msg: ''})
     const {data:authData, error} = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password
@@ -37,8 +43,9 @@ export default function Login() {
       setAuthError({error: true, msg: error.message})
     }
     else{
-      navigate('/')
+      navigate('/dashboard')
       console.log('Login succeful')
+      reset()
     }
   }
   
@@ -46,12 +53,12 @@ export default function Login() {
     <>
       <div className="flex items-center justify-center px-5 py-10 lg:py-30">
         <Card className="max-w-lg w-full">
-          {authError.error ? <h1 className="text-xl text-center font-semibold text-red-600">Error! {authError.msg}</h1> : ""}
+          {authError.error ? <h1 className="text-xl text-center font-semibold text-red-600">{t("auth.errorPrefix")} {authError.msg}</h1> : ""}
           <CardHeader>
-            <CardTitle>Login account</CardTitle>
-            <CardDescription className="max-w-md">Log in to your account</CardDescription>
+            <CardTitle>{t("auth.loginTitle")}</CardTitle>
+            <CardDescription className="max-w-md">{t("auth.loginDesc")}</CardDescription>
             <CardAction>
-              <NavLink to="/register"><Button className="text-lg" variant="link">Sign Up</Button></NavLink>
+              <NavLink to="/"><Button className="text-lg" variant="link"><StepBack /> {t("auth.return")}</Button></NavLink>
             </CardAction>
           </CardHeader>
           <CardContent>
@@ -60,35 +67,39 @@ export default function Login() {
              onSubmit={handleSubmit(onSubmit)}
              className="flex flex-col gap-5">
               <div className="flex flex-col gap-3">
-                <label className="text-xl font-semibold">Email</label>
+                <label className="text-xl font-semibold">{t("auth.emailLabel")}</label>
                 <Input {...register('email', 
                     {
-                      required: 'Email обьязателен',
+                      required: t("auth.validation.emailRequired"),
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Некорректный email",
+                        message: t("auth.validation.emailInvalid"),
                       }
-                    })} placeholder="Email..."/>
+                    })} placeholder={t("auth.emailPlaceholder")}/>
                     {errors.email && (
                         <span className="text-red-500 text-sm font-medium">{errors.email?.message}</span>
                     )}
               </div>
               <div className="flex flex-col gap-3">
-                <label className="text-xl font-semibold">Password</label>
+                <label className="text-xl font-semibold">{t("auth.passwordLabel")}</label>
                 <Input {...register("password", {
-                      required: "Пароль обязателен",
-                      minLength: { value: 6, message: "Минимум 6 символов" },
-                  })} type="password" placeholder="Password..."/>
+                      required: t("auth.validation.passwordRequired"),
+                      minLength: { value: 6, message: t("auth.validation.passwordMin") },
+                  })} type="password" placeholder={t("auth.passwordPlaceholder")}/>
                 {errors.password && (
                   <span className="text-red-500 text-sm font-medium">{errors.password?.message}</span>
                 )}
               </div>
             </form>
           </CardContent>
+          <div className="flex justify-center items-center">
+            <p>{t("auth.dontHaveAccount")}</p>
+            <NavLink to="/register"><Button className="text-[17px]" variant="link">{t("auth.signUp")}</Button></NavLink>
+          </div>
           <CardFooter className="flex-col gap-4">
-            <Button form="submit-form" type="submit" className="bg-green-600 hover:bg-green-700 w-full">Login</Button>
+            <Button form="submit-form" type="submit" className="bg-green-600 hover:bg-green-700 w-full">{t("auth.login")}</Button>
             <NavLink className='w-full' to="/">
-              <Button className="w-full" variant="outline">Cancel</Button>
+              <Button className="w-full" variant="outline">{t("auth.cancel")}</Button>
             </NavLink>
           </CardFooter>
         </Card>
